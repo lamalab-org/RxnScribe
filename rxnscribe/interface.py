@@ -113,11 +113,17 @@ class RxnScribe:
         return predictions[0]
 
     def predict_image_files(self, image_files: List, **kwargs):
-        input_images = []
-        for path in image_files:
-            image = PIL.Image.open(path).convert("RGB")
-            input_images.append(image)
-        return self.predict_images(input_images, **kwargs)
+            input_images = []
+            for path_or_bytes in image_files:
+                if isinstance(path_or_bytes, str):
+                    image = PIL.Image.open(path_or_bytes).convert("RGB")
+                elif isinstance(path_or_bytes, bytes):
+                    import io
+                    image = PIL.Image.open(io.BytesIO(path_or_bytes)).convert("RGB")
+                else:
+                    raise TypeError(f"Expected str (file path) or bytes, got {type(path_or_bytes)}")
+                input_images.append(image)
+            return self.predict_images(input_images, **kwargs)
 
     def predict_image_file(self, image_file: str, **kwargs):
         predictions = self.predict_image_files([image_file], **kwargs)
